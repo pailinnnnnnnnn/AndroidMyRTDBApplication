@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "186711856709",
+    "firebase_url": "https://myrtdbapplication-333a5.firebaseio.com",
+    "project_id": "myrtdbapplication-333a5",
+    "storage_bucket": "myrtdbapplication-333a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:186711856709:android:0a7eed45103f4137",
+        "android_client_info": {
+          "package_name": "com.pailin_rungruang.myrtdbapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "186711856709-hu2qu07jk7g3lkjkgm9be9ajignf2s4o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pailin_rungruang.myrtdbapplication",
+            "certificate_hash": "b2a20c932c9bfacecdd6a96dd31eb4475f777ebd"
+          }
+        },
+        {
+          "client_id": "186711856709-bpiaoi9ajq6rfjkoul3v7d3g9pq9kkhg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5cN0RGi8czGLZj9THwQbhlcx0sauc3po"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "186711856709-bpiaoi9ajq6rfjkoul3v7d3g9pq9kkhg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
