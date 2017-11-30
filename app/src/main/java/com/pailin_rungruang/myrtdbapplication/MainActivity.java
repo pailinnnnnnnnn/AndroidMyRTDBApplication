@@ -15,7 +15,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.ads.internal.gmsg.HttpClient;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -24,10 +23,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -41,10 +37,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     // Firebase RTDB
     private DatabaseReference mRootRef; /*= FirebaseDatabase.getInstance().getReference();*/
+    private DatabaseReference mRecordsRef;
+    private ArrayList recordsUsername;
+    private ArrayList recordsMessage;
 
     // Google Sign In
     private GoogleSignInClient mGoogleSignInClient;
@@ -68,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText etUsername;
     private Button btnSaveRecord;
     private Button btnDisplayRecord;
+    private LinearLayout llDisplay;
+    private TextView tvDisplay;
 
 
     private void onViewBind() {
@@ -75,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         etUsername = (EditText) findViewById(R.id.et_message2);
         btnSaveRecord = (Button) findViewById(R.id.btn_save);
         btnDisplayRecord = (Button) findViewById(R.id.btn_display);
+        llDisplay = (LinearLayout) findViewById(R.id.ll_display);
+        tvDisplay = (TextView) findViewById(R.id.tv_display);
 
         // Google Sign In
         Prof_Section = (LinearLayout) findViewById(R.id.prof_section);
@@ -85,10 +90,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Pic = (ImageView) findViewById(R.id.iv_display_image);
     }
 
-    private void initInstance(){
+    private void initInstance() {
         // set view Google Sign In
         SignIn.setSize(SignIn.SIZE_STANDARD);
         Prof_Section.setVisibility(View.GONE);
+        tvDisplay.setVisibility(View.VISIBLE);
 
         btnSaveRecord.setOnClickListener(this);
         btnDisplayRecord.setOnClickListener(this);
@@ -109,9 +115,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                if(firebaseAuth.getCurrentUser()!=null){
-                    Toast.makeText(MainActivity.this,"Auth currentUser not null",Toast.LENGTH_SHORT).show();
-                }else {
+                if (firebaseAuth.getCurrentUser() != null) {
+                    Toast.makeText(MainActivity.this, "Auth currentUser not null", Toast.LENGTH_SHORT).show();
+                } else {
 
                 }
             }
@@ -127,10 +133,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                        Toast.makeText(MainActivity.this,"on connection failed",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "on connection failed", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addApi(Auth.GOOGLE_SIGN_IN_API,gso)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
 
         // Build a GoogleSignInClient with the options specified by gso.
@@ -154,9 +160,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //TODO: RTDB saveRecord
 //        DatabaseReference mUsernameRef = database.getReference()
-//                .child("records").child("username");
+//                .child("recordsUsernames").child("username");
 
-        if(mAuth.getCurrentUser()!=null){
+        if (mAuth.getCurrentUser() != null) {
             DatabaseReference mUsernameRef = mRootRef
                     .child("records").child(mAuth.getUid()).child("username");
 
@@ -166,8 +172,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             mUsernameRef.setValue(stringUsername);
             mMessageRef.setValue(stringMessage);
-        }else {
-            Toast.makeText(MainActivity.this,"Please Sign In with Google account",Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(MainActivity.this, "Please Sign In with Google account", Toast.LENGTH_SHORT).show();
         }
 
 
@@ -177,18 +183,57 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //TODO: RTDB fetchMessage
 
-        final TextView tvDisplay = findViewById(R.id.tv_display);
+        mRecordsRef = mRootRef.child("records");
 
-        mRootRef.addValueEventListener(new ValueEventListener() {
+        mRecordsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //get data (String)
 //                String value = dataSnapshot.getValue(String.class);
 
-                String stringMessage = dataSnapshot.child("records").child("message").getValue().toString();
-                String stringUsername = dataSnapshot.child("records").child("username").getValue().toString();
+                String show = "";
 
-                tvDisplay.setText(stringMessage + "\n" + stringUsername + " ..ไม่ได้กล่าวไว้");
+                // Sign In with Google
+                if (mAuth.getCurrentUser() != null) {
+
+                    recordsUsername = new ArrayList();
+                    recordsMessage = new ArrayList();
+
+                    // Get dataSnapshot
+                    for (DataSnapshot dsp : dataSnapshot.getChildren()) {
+//                        Log.d("dsp", "onDataChange: "+ dsp.child("username").getValue());
+//                        Log.d("dsp", "onDataChange: "+ dsp.child("message").getValue());
+
+                        recordsMessage.add(dsp.child("message").getValue());
+                        recordsUsername.add(dsp.child("username").getValue());
+
+                    }
+
+                    for (int i = 0; i < recordsUsername.size(); i++) {
+                        if (recordsUsername.get(i) != null && recordsMessage.get(i) != null) {
+//                            Log.d("pailin", "onDataChange: " + recordsUsername.get(i).toString() + " " + recordsMessage.get(i).toString());
+                            show += recordsMessage.get(i).toString() + ", " + recordsUsername.get(i).toString() + " ไม่ได้กล่าวไว้. \n";
+                        }
+                    }
+
+                } else { //Does not Sign In with Google
+
+                    recordsUsername = new ArrayList();
+
+                    for (DataSnapshot dsp : dataSnapshot.getChildren()) {
+                        recordsUsername.add(dsp.child("username").getValue());
+                    }
+
+                    for (int i = 0; i < recordsUsername.size(); i++) {
+                        if (recordsUsername.get(i) != null) {
+                            show += recordsUsername.get(i).toString() + " ไม่ได้กล่าวไว้. \n";
+                        }
+                    }
+
+                }
+
+                tvDisplay.setText(show);
+
             }
 
             @Override
@@ -198,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+
 
     @Override
     public void onClick(View view) {
@@ -212,9 +258,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 saveRecord();
                 break;
             case R.id.btn_display:
+                tvDisplay.setVisibility(View.VISIBLE);
                 displayRecord();
                 break;
-
         }
 
     }
@@ -247,8 +293,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                }
 //            }
 //        });
-
+        tvDisplay.setVisibility(View.GONE);
         updateUI(null);
+
     }
 
 
@@ -257,20 +304,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onActivityResult(requestCode, resultCode, data);
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == RC_SIGN_IN) {
-           GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
-           if (result.isSuccess()){
-               // Google Sign In was successful, authenticate with Firebase
-               GoogleSignInAccount account = result.getSignInAccount();
-               firebaseAuthWithGoogle(account);
-           }else {
-               Toast.makeText(MainActivity.this,"Google Sign In was failed",Toast.LENGTH_SHORT).show();
-           }
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if (result.isSuccess()) {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = result.getSignInAccount();
+                firebaseAuthWithGoogle(account);
+            } else {
+                Toast.makeText(MainActivity.this, "Google Sign In was failed", Toast.LENGTH_SHORT).show();
+            }
 
         }
     }
 
     private void updateUI(FirebaseUser user) {
-        if (user!=null) {
+        if (user != null) {
 
             String userId = user.getUid();
             String name = user.getDisplayName();
@@ -286,6 +333,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             Prof_Section.setVisibility(View.GONE);
             SignIn.setVisibility(View.VISIBLE);
+
         }
 
     }

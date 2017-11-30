@@ -116,12 +116,28 @@
         android:text="Display"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Light.Widget.PopupMenu.Small" />
 
-    <TextView
-        android:id="@+id/tv_display"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="Display Message here."
-        android:textSize="25sp" />
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:padding="10dp"
+            android:id="@+id/ll_display"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/tv_display"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Display Message here."
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
 
 </LinearLayout>
