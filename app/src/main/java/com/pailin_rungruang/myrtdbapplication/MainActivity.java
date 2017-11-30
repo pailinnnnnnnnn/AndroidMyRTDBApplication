@@ -111,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 if(firebaseAuth.getCurrentUser()!=null){
                     Toast.makeText(MainActivity.this,"Auth currentUser not null",Toast.LENGTH_SHORT).show();
+                }else {
+
                 }
             }
         };
@@ -135,12 +137,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
 
-
         FirebaseDatabase.getInstance().setPersistenceEnabled(true); //set Offline mode
         mRootRef = FirebaseDatabase.getInstance().getReference();
-
-
-
 
 
     }
@@ -158,14 +156,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        DatabaseReference mUsernameRef = database.getReference()
 //                .child("records").child("username");
 
-        DatabaseReference mUsernameRef = mRootRef
-                .child("records").child("username");
+        if(mAuth.getCurrentUser()!=null){
+            DatabaseReference mUsernameRef = mRootRef
+                    .child("records").child(mAuth.getUid()).child("username");
 
-        DatabaseReference mMessageRef = mRootRef
-                .child("records").child("message");
 
-        mUsernameRef.setValue(stringUsername);
-        mMessageRef.setValue(stringMessage);
+            DatabaseReference mMessageRef = mRootRef
+                    .child("records").child(mAuth.getUid()).child("message");
+
+            mUsernameRef.setValue(stringUsername);
+            mMessageRef.setValue(stringMessage);
+        }else {
+            Toast.makeText(MainActivity.this,"Please Sign In with Google account",Toast.LENGTH_SHORT).show();
+        }
+
 
     }
 
@@ -232,6 +236,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void signOut() {
 //        FirebaseAuth.getInstance().signOut();
         mAuth.signOut();
+        mGoogleSignInClient.signOut();
+        mGoogleSignInClient.revokeAccess();
+
+//        mAuth.removeAuthStateListener(new FirebaseAuth.AuthStateListener() {
+//            @Override
+//            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+//                if (firebaseAuth==null){
+//                    Toast.makeText(MainActivity.this,"Remove account",Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
 
         updateUI(null);
     }
@@ -257,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void updateUI(FirebaseUser user) {
         if (user!=null) {
 
-//            String userId = user.getId();
+            String userId = user.getUid();
             String name = user.getDisplayName();
             String email = user.getEmail();
             String img_url = user.getPhotoUrl().toString();
